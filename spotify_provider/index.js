@@ -1,6 +1,7 @@
 const request = require('request')
 const EventEmitter = require('events')
 const last = require('lodash/last')
+const split = require('lodash/split')
 
 function makeRequest (options, requestFunction = request) {
   return new Promise((resolve, reject) => {
@@ -39,6 +40,11 @@ const findPort = () => {
 
   const promises = ports.map((port) => makeTestRequest(port).then(() => port))
   return Promise.race(promises)
+}
+
+function getTrackInfo (track) {
+  const [,type,id] = split(track.track_resource.uri, ':', 3)
+  return {id, type}
 }
 
 class SpotifyProvider {
@@ -104,11 +110,11 @@ class SpotifyProvider {
       timeout: 60500,
       qs
     }).then((status) => {
-      const trackId = last(status.track.track_resource.uri.split(':'))
+      const trackInfo = getTrackInfo(status.track)
       const payload = {
         playing: status.playing,
         track: {
-          id: trackId,
+          id: trackInfo.id,
           title: status.track.track_resource.name,
           artist: status.track.artist_resource.name,
           album: status.track.album_resource.name,
@@ -116,7 +122,9 @@ class SpotifyProvider {
         }
       }
 
-      return getArtwork(trackId).then(
+      if (trackInfo.type === 'local') return payload
+
+      return getArtwork(trackInfo.id).then(
         (artwork) => {
           payload.track.artwork = artwork
           return payload
