@@ -9,7 +9,7 @@ const app = express()
 const wss = new WebSocketServer({server})
 
 const CONFIG = {
-  provider: 'snip',
+  provider: 'spotify',
 
   snip: {
     path: 'C:\\Users\\rafal\\Downloads\\Snip'
