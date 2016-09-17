@@ -1,0 +1,254 @@
+@import 'https://fonts.googleapis.com/css?family=Prompt:200,700';
+
+/* Reset */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Base design */
+
+body {
+  font-family: 'Prompt', sans-serif;
+  background-color: #212121;
+  color: #fff;
+  overflow: hidden;
+}
+
+.panel, .panel__overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.panel__artwork-wrap {
+  position: absolute;
+  left: -2vmax;
+  top: -2vmax;
+  right: -2vmax;
+  bottom: -2vmax;
+  transform: translateZ(0);
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.panel {
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel__lines {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel__line,
+.panel__message {
+  line-height: 1.3;
+}
+
+.panel__message {
+  font-size: calc(3rem + 5vw);
+  font-weight: 700;
+}
+
+.panel__line.is-title {
+  font-size: calc(1rem + 3vw);
+  font-weight: 700;
+  order: -1;
+}
+
+.panel__line.is-artist {
+  font-size: 2.5vw;
+  font-weight: 200;
+}
+
+.panel__line.is-album {
+  display: none;
+}
+
+.panel__artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin-bottom: -8px;
+  filter: blur(1vmax);
+}
+
+.panel__overlay {
+  background-color: #212121;
+  opacity: 0.7;
+}
+
+/* Logic and Animation — Play State */
+
+.panel__line.is-artist,
+.panel__line.is-title,
+.panel__message {
+  transform: translateZ(0);
+  transition-property: transform, opacity;
+  transition-duration: 600ms, 300ms;
+}
+
+.panel__line.is-artist {
+  transform-origin: top;
+}
+
+.panel__line.is-title {
+  transform-origin: bottom;
+}
+
+.panel__artwork-wrap, .panel__overlay {
+  transition-property: opacity, background-color;
+  transition-duration: 300ms, 1000ms;
+}
+
+.is-paused .panel__line.is-artist,
+.is-paused .panel__line.is-title {
+  opacity: 0;
+  transform: scale(1.5);
+}
+
+.is-paused .panel__line.is-title {
+  transition-delay: 100ms;
+}
+
+.is-paused .panel__artwork-wrap,
+.is-paused .panel__overlay {
+  opacity: 0;
+  transition-delay: 200ms;
+}
+
+.is-paused .panel__message {
+  transition-delay: 300ms;
+}
+
+.is-playing .panel__message {
+  opacity: 0;
+  transform: scale(0.6667);
+}
+
+.is-playing .panel__line.is-artist {
+  transition-delay: 100ms;
+}
+
+.is-playing .panel__line.is-title {
+  transition-delay: 200ms;
+}
+
+/* Logic and Animation — Field Updates */
+
+@keyframes fade-out-top {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-top {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out-bottom {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-bottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.panel__line.is-new {
+  margin-bottom: -1.3em;
+}
+
+.panel__line.is-title.is-old {
+  animation: 500ms fade-out-top;
+}
+
+.panel__line.is-title.is-new {
+  animation: 500ms fade-in-top;
+}
+
+.panel__line.is-artist.is-old {
+  animation: 500ms ease 100ms fade-out-bottom;
+}
+
+.panel__line.is-artist.is-new {
+  opacity: 0;
+  animation: 500ms ease 100ms fade-in-bottom;
+  animation-fill-mode: forwards;
+}
+
+/* Logic and Animation — Artwork */
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.panel__artwork-wrap.is-old {
+  animation: 1000ms fade-out;
+}
+
+.panel__artwork-wrap.is-new {
+  animation: 1000ms fade-in;
+}

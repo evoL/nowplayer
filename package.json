@@ -1,0 +1,23 @@
+{
+  "name": "nowplayer",
+  "version": "1.0.0",
+  "description": "Now Playing",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "debug": "node-debug index.js"
+  },
+  "author": "Rafał Hirsz",
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^1.6.0",
+    "datauri": "^1.0.4",
+    "express": "^4.14.0",
+    "gm": "^1.23.0",
+    "home-config": "^0.1.0",
+    "lodash": "^4.15.0",
+    "onecolor": "^3.0.4",
+    "raw-body": "^2.1.7",
+    "ws": "^1.1.1"
+  }
+}
