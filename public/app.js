@@ -1,18 +1,14 @@
 /* eslint-env browser */
-/* global chroma */
+/* global chroma, ColorThief */
 
-let previousTrackInfo = {}
-let trackInfo
+let previousPayload = {}
+let payload
 
 function adjustColor (color) {
   const c = chroma(color)
 
-  if (c.luminance() < 0.3) return color
+  if (c.luminance() < 0.3) return c.hex()
   return c.luminance(0.3).hex()
-}
-
-function isPlaying () {
-  return !!trackInfo.trackId
 }
 
 function updateElement (element, callback) {
@@ -33,7 +29,7 @@ function updateElement (element, callback) {
 }
 
 function updateField (element, newValue) {
-  if (element.textContent === '' || !previousTrackInfo.trackId || document.hidden) {
+  if (element.textContent === '' || !previousPayload.playing || document.hidden) {
     element.textContent = newValue
     return
   }
@@ -46,7 +42,7 @@ function updateField (element, newValue) {
 }
 
 function updateArtwork (element, newValue) {
-  if (element.src === '' || !previousTrackInfo.trackId || document.hidden) {
+  if (element.src === '' || !previousPayload.playing || document.hidden) {
     element.src = newValue
     return
   }
@@ -75,12 +71,12 @@ function updateArtwork (element, newValue) {
   wrap.addEventListener('animationend', eventHandler)
 }
 
-function render (trackInfo) {
-  const {artist, album, title, artwork} = trackInfo
+function render (payload) {
+  const {playing, track: {artist, album, title, artwork}} = payload
 
   const app = document.getElementById('App')
 
-  if (!isPlaying()) {
+  if (!playing) {
     app.classList.remove('is-playing')
     app.classList.add('is-paused')
     document.title = 'Silence'
@@ -97,15 +93,24 @@ function render (trackInfo) {
   updateField(app.querySelector('.is-title'), title)
 
   if (artwork) {
-    updateArtwork(app.querySelector('.panel__artwork'), artwork.data)
-    app.querySelector('.panel__overlay').style.backgroundColor = adjustColor(artwork.color)
+    const newImage = new Image()
+    newImage.onload = () => {
+      const color = new ColorThief().getColor(newImage)
+
+      setTimeout(() => {
+        updateArtwork(app.querySelector('.panel__artwork'), newImage.src)
+        app.querySelector('.panel__overlay').style.backgroundColor = adjustColor(color)
+      }, 1)
+    }
+    newImage.crossOrigin = 'Anonymous'
+    newImage.src = artwork
   }
 }
 
 let ws = new WebSocket('ws://' + location.host + '/')
 
 ws.onmessage = function (event) {
-  previousTrackInfo = trackInfo
-  trackInfo = JSON.parse(event.data)
-  render(trackInfo)
+  previousPayload = payload
+  payload = JSON.parse(event.data)
+  render(payload)
 }

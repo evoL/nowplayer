@@ -2,48 +2,67 @@ const server = require('http').createServer()
 const express = require('express')
 const WebSocketServer = require('ws').Server
 const EventEmitter = require('events')
-// const kebabCase = require('lodash/kebabCase')
-// const config = require('home-config').load('.nowplayer.ini')
+const get = require('lodash/get')
+const merge = require('lodash/merge')
 
 const app = express()
 const wss = new WebSocketServer({server})
 
-function configFilePath () {
-  return path.join(HOMEDIR, '.nowplayer.toml')
-}
+const CONFIG = {
+  provider: 'snip',
 
-function formatTrack (track) {
-  if (!track.artwork) return track
-
-  return Object.assign({}, track, {artwork: {data: '[snip]', color: track.artwork.color}})
-}
-
-const state = {}
-const emitter = new EventEmitter()
-emitter.on('trackChanged', (track) => {
-  console.log('Track changed: ', formatTrack(track))
-  state.track = track
-})
-
-const provider = new SnipProvider({
-  path: 'C:\\Users\\rafal\\Downloads\\Snip',
-  onUpdate: function (track) {
-    emitter.emit('trackChanged', track)
+  snip: {
+    path: 'C:\\Users\\rafal\\Downloads\\Snip'
   }
+}
+
+function formatPayload (payload) {
+  if ((get(payload, 'track.artwork') || '').startsWith('data:')) {
+    return merge({}, payload, {
+      track: {artwork: '[snip]'}
+    })
+  }
+
+  return payload
+}
+
+function updatePayload (payload) {
+  if (payload.playing === state.payload.playing
+    && payload.track.id === state.payload.track.id
+    && payload.track.artwork === state.payload.track.artwork) {
+    return
+  }
+
+  state.payload = payload
+  emitter.emit('change', payload)
+}
+
+function makeProvider (config, emitter) {
+  const type = config.provider
+  const ProviderClass = require(`./${type}_provider`)
+
+  return new ProviderClass(Object.assign({}, config[type], {
+    onUpdate: updatePayload
+  }))
+}
+
+const state = {payload: {track: {}}}
+const emitter = new EventEmitter()
+emitter.on('change', (payload) => {
+  console.log('Track changed: ', formatPayload(payload))
 })
-// const provider = new FakeProvider({
-//   onUpdate: (track) => emitter.emit('trackChanged', track)
-// })
+
+const provider = makeProvider(CONFIG, emitter)
 
 wss.on('connection', (ws) => {
-  const sendTrack = (track) => ws.send(JSON.stringify(track))
+  const sendPayload = (payload) => ws.send(JSON.stringify(payload))
 
-  if (state.track) sendTrack(state.track)
+  if (state.payload.playing !== undefined) sendPayload(state.payload)
 
-  emitter.on('trackChanged', sendTrack)
+  emitter.on('change', sendPayload)
 
   ws.on('close', () => {
-    emitter.removeListener('trackChanged', sendTrack)
+    emitter.removeListener('change', sendPayload)
   })
 })
 

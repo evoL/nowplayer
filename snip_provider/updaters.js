@@ -4,7 +4,6 @@ const readline = require('readline')
 const gm = require('gm')
 const getRawBody = require('raw-body')
 const DataUri = require('datauri')
-const onecolor = require('onecolor')
 const {bindKey} = require('lodash')
 
 function makeFileUpdater (fileName, worker) {
@@ -53,7 +52,7 @@ const promisify = (fnOrObject, key, ...args) => {
 const album = makeLineUpdater('Snip_Album.txt')
 const artist = makeLineUpdater('Snip_Artist.txt')
 const title = makeLineUpdater('Snip_Track.txt')
-const trackId = makeLineUpdater('Snip_TrackId.txt')
+const id = makeLineUpdater('Snip_TrackId.txt')
 
 const artwork = makeFileUpdater('Snip_Artwork.jpg', (stream, resolve, reject) => {
   getRawBody(stream).then((imageBuffer) => {
@@ -63,29 +62,16 @@ const artwork = makeFileUpdater('Snip_Artwork.jpg', (stream, resolve, reject) =>
       if (width === 1 && height === 1) {
         return null // no artwork
       } else {
-        const uri = Promise.resolve(new DataUri().format('.jpg', imageBuffer).content)
-
-        const color = promisify(image.resize(200, 200).colors(1), 'toBuffer', 'RGB')
-          .then((buffer) => {
-            const rgb = Array.from(buffer.slice(0, 3).values())
-            return onecolor(rgb.concat(255)).hex()
-          })
-
-        return Promise.all([uri, color]).then(([uri, color]) => (
-          {
-            data: uri,
-            color
-          }
-        ), reject)
+        return new DataUri().format('.jpg', imageBuffer).content
       }
     })
   }).then(resolve, () => {})
 })
 
 module.exports = {
+  id,
   album,
   artist,
   title,
-  trackId,
   artwork
 }

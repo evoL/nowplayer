@@ -14,35 +14,38 @@ function loadArtwork (filename) {
 const artwork = loadArtwork('artwork1.jpg')
 
 const UPDATES = [
-  {},
   {
-    album: 'A Head Full Of Dreams',
-    artist: 'Coldplay',
-    title: 'Hymn For The Weekend',
-    trackId: '?',
-    artwork: {
-      data: artwork,
-      color: '#cea498'
+    playing: false,
+    track: {}
+  },
+  {
+    playing: true,
+    track: {
+      id: '1',
+      album: 'A Head Full Of Dreams',
+      artist: 'Coldplay',
+      title: 'Hymn For The Weekend',
+      artwork
     }
   },
   {
-    album: 'A Head Full Of Dreams',
-    artist: 'Coldplay',
-    title: 'Fun (feat. Tove Lo)',
-    trackId: '?',
-    artwork: {
-      data: artwork,
-      color: '#cea498'
+    playing: true,
+    track: {
+      id: '2',
+      album: 'A Head Full Of Dreams',
+      artist: 'Coldplay',
+      title: 'Fun (feat. Tove Lo)',
+      artwork
     }
   },
   {
-    album: "No Man's Sky: Music For An Infinite Universe",
-    artist: '65daysofstatic',
-    title: 'Blueprint for a Slow Machine',
-    trackId: '?',
-    artwork: {
-      data: loadArtwork('artwork3.jpg'),
-      color: '#31353a'
+    playing: true,
+    track: {
+      id: '3',
+      album: "No Man's Sky: Music For An Infinite Universe",
+      artist: '65daysofstatic',
+      title: 'Blueprint for a Slow Machine',
+      artwork: loadArtwork('artwork3.jpg')
     }
   }
 ]
