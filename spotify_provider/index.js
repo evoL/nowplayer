@@ -5,9 +5,11 @@ const split = require('lodash/split')
 
 function makeRequest (options, requestFunction = request) {
   return new Promise((resolve, reject) => {
-    requestFunction(options, (err, _, response) => {
+    requestFunction(options, (err, message, response) => {
       if (err) {
         reject(err)
+      } else if (message.statusCode >= 400) {
+        reject(response)
       } else {
         resolve(response)
       }
@@ -30,7 +32,7 @@ const makeTestRequest = (port) => makeRequest({
   qs: {service: 'remote'},
   timeout: 2000,
   strictSSL: false
-})
+}).then(() => port)
 
 const findPort = () => {
   let ports = []
@@ -38,8 +40,7 @@ const findPort = () => {
     ports.push(4370 + i)
   }
 
-  const promises = ports.map((port) => makeTestRequest(port).then(() => port))
-  return Promise.race(promises)
+  return ports.reduce((promise, port) => promise.catch(() => makeTestRequest(port)), Promise.reject())
 }
 
 function getTrackInfo (track) {
