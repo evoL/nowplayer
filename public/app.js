@@ -95,15 +95,13 @@ function render (payload) {
   if (artwork) {
     const newImage = new Image()
     newImage.onload = () => {
-      const color = new ColorThief().getColor(newImage)
-
       setTimeout(() => {
         updateArtwork(app.querySelector('.panel__artwork'), newImage.src)
-        app.querySelector('.panel__overlay').style.backgroundColor = adjustColor(color)
+        app.querySelector('.panel__overlay').style.backgroundColor = adjustColor(artwork.color)
       }, 1)
     }
     newImage.crossOrigin = 'Anonymous'
-    newImage.src = artwork
+    newImage.src = artwork.uri
   }
 }
 

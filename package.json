@@ -11,8 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "chokidar": "^1.6.0",
+    "chroma-js": "^1.2.1",
     "datauri": "^1.0.4",
     "express": "^4.14.0",
+    "farmhash": "^1.2.1",
     "gm": "^1.23.0",
     "lodash": "^4.15.0",
     "raw-body": "^2.1.7",

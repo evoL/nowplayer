@@ -1,14 +1,11 @@
 const path = require('path')
 const fs = require('fs')
-const DataUri = require('datauri')
 
 const noop = () => {}
 
 function loadArtwork (filename) {
   const artworkPath = path.join(__dirname, filename)
-  const buffer = fs.readFileSync(artworkPath)
-
-  return new DataUri().format('.jpg', buffer).content
+  return fs.readFileSync(artworkPath)
 }
 
 const artwork = loadArtwork('artwork1.jpg')

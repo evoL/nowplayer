@@ -3,7 +3,6 @@ const path = require('path')
 const readline = require('readline')
 const gm = require('gm')
 const getRawBody = require('raw-body')
-const DataUri = require('datauri')
 const {bindKey} = require('lodash')
 
 function makeFileUpdater (fileName, worker) {
@@ -35,20 +34,6 @@ function makeLineUpdater (fileName) {
   })
 }
 
-const promisify = (fnOrObject, key, ...args) => {
-  const fn = (key === void 0) ? fnOrObject : bindKey(fnOrObject, key, ...args)
-
-  return new Promise((resolve, reject) => {
-    fn((err, value) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(value)
-      }
-    })
-  })
-}
-
 const album = makeLineUpdater('Snip_Album.txt')
 const artist = makeLineUpdater('Snip_Artist.txt')
 const title = makeLineUpdater('Snip_Track.txt')
@@ -58,14 +43,16 @@ const artwork = makeFileUpdater('Snip_Artwork.jpg', (stream, resolve, reject) =>
   getRawBody(stream).then((imageBuffer) => {
     const image = gm(imageBuffer)
 
-    return promisify(image, 'size').then(({width, height}) => {
-      if (width === 1 && height === 1) {
-        return null // no artwork
+    image.size((err, size) => {
+      if (err) {
+        reject(err)
+      } else if (size.width === 1 && size.height === 1) {
+        resolve(null)
       } else {
-        return new DataUri().format('.jpg', imageBuffer).content
+        resolve(imageBuffer)
       }
     })
-  }).then(resolve, () => {})
+  })
 })
 
 module.exports = {

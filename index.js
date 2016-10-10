@@ -4,6 +4,7 @@ const WebSocketServer = require('ws').Server
 const EventEmitter = require('events')
 const get = require('lodash/get')
 const merge = require('lodash/merge')
+const Artwork = require('./artwork')
 
 const app = express()
 const wss = new WebSocketServer({server})
@@ -17,7 +18,9 @@ const CONFIG = {
 }
 
 function formatPayload (payload) {
-  if ((get(payload, 'track.artwork') || '').startsWith('data:')) {
+  const {artwork} = payload.track
+
+  if (artwork.isLocal()) {
     return merge({}, payload, {
       track: {artwork: '[snip]'}
     })
@@ -27,9 +30,14 @@ function formatPayload (payload) {
 }
 
 function updatePayload (payload) {
+  // Wrap the artwork
+  payload = merge({}, payload, {
+    track: {artwork: new Artwork(payload.track.artwork || null)}
+  })
+
   if (payload.playing === state.payload.playing
     && payload.track.id === state.payload.track.id
-    && payload.track.artwork === state.payload.track.artwork) {
+    && payload.track.artwork.equals(state.payload.track.artwork)) {
     return
   }
 
@@ -46,7 +54,7 @@ function makeProvider (config, emitter) {
   }))
 }
 
-const state = {payload: {track: {}}}
+const state = {payload: {track: {artwork: new Artwork(null)}}}
 const emitter = new EventEmitter()
 emitter.on('change', (payload) => {
   console.log('Track changed: ', formatPayload(payload))
@@ -55,7 +63,11 @@ emitter.on('change', (payload) => {
 const provider = makeProvider(CONFIG, emitter)
 
 wss.on('connection', (ws) => {
-  const sendPayload = (payload) => ws.send(JSON.stringify(payload))
+  const sendPayload = (payload) => {
+    payload.track.artwork.format().then(() => {
+      ws.send(JSON.stringify(payload))
+    })
+  }
 
   if (state.payload.playing !== undefined) sendPayload(state.payload)
 
