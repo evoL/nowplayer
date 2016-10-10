@@ -70,6 +70,7 @@ class SnipProvider {
       this.update(this.state)
     }, (error) => {
       console.error(error)
+      setTimeout(() => this._updateState(field), this.options.threshold)
     })
   }
 }
