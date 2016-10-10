@@ -1,6 +1,6 @@
 {
   "name": "nowplayer",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Now Playing",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,6 @@
     "datauri": "^1.0.4",
     "express": "^4.14.0",
     "gm": "^1.23.0",
-    "home-config": "^0.1.0",
     "lodash": "^4.15.0",
     "raw-body": "^2.1.7",
     "request": "^2.74.0",
