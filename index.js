@@ -2,7 +2,6 @@ const server = require('http').createServer()
 const express = require('express')
 const WebSocketServer = require('ws').Server
 const EventEmitter = require('events')
-const get = require('lodash/get')
 const merge = require('lodash/merge')
 const Artwork = require('./artwork')
 
@@ -35,9 +34,9 @@ function updatePayload (payload) {
     track: {artwork: new Artwork(payload.track.artwork || null)}
   })
 
-  if (payload.playing === state.payload.playing
-    && payload.track.id === state.payload.track.id
-    && payload.track.artwork.equals(state.payload.track.artwork)) {
+  if (payload.playing === state.payload.playing &&
+    payload.track.id === state.payload.track.id &&
+    payload.track.artwork.equals(state.payload.track.artwork)) {
     return
   }
 

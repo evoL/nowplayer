@@ -1,6 +1,5 @@
 const request = require('request')
 const EventEmitter = require('events')
-const last = require('lodash/last')
 const split = require('lodash/split')
 const LRU = require('lru-cache')
 

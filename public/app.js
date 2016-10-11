@@ -1,5 +1,5 @@
 /* eslint-env browser */
-/* global chroma, ColorThief */
+/* global chroma */
 
 let previousPayload = {}
 let payload

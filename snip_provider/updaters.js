@@ -3,7 +3,6 @@ const path = require('path')
 const readline = require('readline')
 const gm = require('gm')
 const getRawBody = require('raw-body')
-const {bindKey} = require('lodash')
 
 function makeFileUpdater (fileName, worker) {
   return (options) => {
