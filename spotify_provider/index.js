@@ -2,6 +2,19 @@ const request = require('request')
 const EventEmitter = require('events')
 const last = require('lodash/last')
 const split = require('lodash/split')
+const LRU = require('lru-cache')
+
+let ARTWORK_CACHE = LRU({size: 50, length: (url) => url.length})
+
+function fetchFromCache (cache, key) {
+  return new Promise((resolve, reject) => {
+    if (cache.has(key)) {
+      resolve(cache.get(key))
+    } else {
+      reject(cache.set.bind(cache, key))
+    }
+  })
+}
 
 function makeRequest (options, requestFunction = request) {
   return new Promise((resolve, reject) => {
@@ -22,10 +35,20 @@ const getOAuthToken = () => makeRequest({
   json: true
 }).then((response) => response.t)
 
-const getArtwork = (trackId) => makeRequest({
-  uri: `https://api.spotify.com/v1/tracks/${trackId}`,
-  json: true
-}).then((response) => response.album.images.find((image) => image.width <= 300).url)
+const getArtwork = (albumId) => (
+  fetchFromCache(ARTWORK_CACHE, albumId)
+  .catch((set) => (
+    makeRequest({
+      uri: `https://api.spotify.com/v1/albums/${albumId}`,
+      json: true
+    })
+    .then((response) => response.images.find((image) => image.width <= 300).url)
+    .then((url) => {
+      set(url)
+      return url
+    })
+  ))
+)
 
 const makeTestRequest = (port) => makeRequest({
   uri: `https://localhost:${port}/service/version.json`,
@@ -43,8 +66,8 @@ const findPort = () => {
   return ports.reduce((promise, port) => promise.catch(() => makeTestRequest(port)), Promise.reject())
 }
 
-function getTrackInfo (track) {
-  const [,type,id] = split(track.track_resource.uri, ':', 3)
+function parseSpotifyUri (uri) {
+  const [, type, id] = split(uri, ':', 3)
   return {id, type}
 }
 
@@ -111,7 +134,9 @@ class SpotifyProvider {
       timeout: 60500,
       qs
     }).then((status) => {
-      const trackInfo = getTrackInfo(status.track)
+      const trackInfo = parseSpotifyUri(status.track.track_resource.uri)
+      const albumInfo = parseSpotifyUri(status.track.album_resource.uri)
+
       const payload = {
         playing: status.playing,
         track: {
@@ -125,7 +150,7 @@ class SpotifyProvider {
 
       if (trackInfo.type === 'local') return payload
 
-      return getArtwork(trackInfo.id).then(
+      return getArtwork(albumInfo.id).then(
         (artwork) => {
           payload.track.artwork = artwork
           return payload

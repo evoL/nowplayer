@@ -4,8 +4,10 @@ const getRawBody = require('raw-body')
 const chroma = require('chroma-js')
 const DataUri = require('datauri')
 const farmhash = require('farmhash')
+const LRU = require('lru-cache')
 
 const HTTP_RX = /^https?:\/\//
+const ARTWORK_CACHE = LRU({size: 50, length: ({uri}) => uri.length})
 
 function fetchArtwork (source) {
   if (Buffer.isBuffer(source)) return Promise.resolve(source)
@@ -49,7 +51,6 @@ class Artwork {
   constructor (source) {
     this.source = source
     this.cacheKey = makeCacheKey(source)
-    this._cached = null
   }
 
   equals (other) {
@@ -65,16 +66,17 @@ class Artwork {
   }
 
   toJSON () {
-    return this._cached || {ready: false}
+    return ARTWORK_CACHE.has(this.cacheKey) ? ARTWORK_CACHE.get(this.cacheKey) : {ready: false}
   }
 
   format () {
     if (!this.isValid()) return Promise.resolve(null)
-    if (this._cached) return Promise.resolve(this._cached)
+    if (ARTWORK_CACHE.has(this.cacheKey)) return Promise.resolve(ARTWORK_CACHE.get(this.cacheKey))
     return Promise.all([makeArtworkUri(this.source), getArtworkColor(this.source)]).then(([uri, color]) => {
-      this._cached = {uri, color}
-      return this._cached
-    })
+      const formatted = {uri, color}
+      ARTWORK_CACHE.set(this.cacheKey, formatted)
+      return formatted
+    }, (error) => console.error(error))
   }
 }
 
