@@ -37,10 +37,6 @@ body {
   bottom: -2vmax;
   transform: translateZ(0);
   opacity: 0.4;
-  -ms-user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 .panel {
@@ -90,6 +86,33 @@ body {
   filter: blur(1vmax);
 }
 
+.spinner {
+  margin: 0 auto;
+  width: 4rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.spinner__one,
+.spinner__two,
+.spinner__three {
+  width: 1rem;
+  height: 1rem;
+  background-color: #fff;
+  border-radius: 100%;
+  display: inline-block;
+}
+
+.panel__artwork-wrap,
+.panel__line,
+.spinner {
+  cursor: default;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* Logic and Animation — Play State */
 
 .body {
@@ -98,7 +121,8 @@ body {
 
 .panel__line.is-artist,
 .panel__line.is-title,
-.panel__message {
+.panel__message,
+.spinner {
   transform: translateZ(0);
   transition-property: transform, opacity;
   transition-duration: 600ms, 300ms;
@@ -116,40 +140,47 @@ body {
   transition: opacity 300ms;
 }
 
-.is-paused .panel__line.is-artist,
-.is-paused .panel__line.is-title {
+.app:not(.is-playing) .panel__line.is-artist,
+.app:not(.is-playing) .panel__line.is-title {
   opacity: 0;
   transform: scale(1.5);
 }
 
-.is-paused .panel__line.is-title {
+.app:not(.is-playing) .panel__line.is-title {
   transition-delay: 100ms;
 }
 
-.is-paused .body {
+.app:not(.is-playing) .body {
   transition-delay: 200ms;
 }
 
-.is-paused .panel__artwork-wrap {
+.app:not(.is-playing) .panel__artwork-wrap {
   opacity: 0;
   transition-delay: 200ms;
 }
 
-.is-paused .panel__message {
+.app.is-paused .panel__message {
   transition-delay: 300ms;
 }
 
-.is-playing .panel__message {
-  opacity: 0;
+.app.is-playing .panel__message {
   transform: scale(0.6667);
 }
 
-.is-playing .panel__line.is-artist {
+.app:not(.is-paused) .panel__message {
+  opacity: 0;
+}
+
+.app:not(.is-paused) .panel__line.is-artist {
   transition-delay: 100ms;
 }
 
-.is-playing .panel__line.is-title {
+.app:not(.is-paused) .panel__line.is-title {
   transition-delay: 200ms;
+}
+
+.app:not(.is-loading) .spinner {
+  opacity: 0;
 }
 
 /* Logic and Animation — Field Updates */
@@ -258,4 +289,39 @@ body {
 
 .panel__artwork-wrap.is-new {
   animation: 1000ms fade-in;
+}
+
+/* Logic and Animation - Loading */
+/* Adapted from https://github.com/tobiasahlin/SpinKit */
+
+.spinner__one,
+.spinner__two,
+.spinner__three {
+  -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.spinner__one {
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+
+.spinner__two {
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+
+@-webkit-keyframes sk-bouncedelay {
+  0%, 80%, 100% { -webkit-transform: scale(0) }
+  40% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  } 40% {
+    -webkit-transform: scale(1.0);
+    transform: scale(1.0);
+  }
 }

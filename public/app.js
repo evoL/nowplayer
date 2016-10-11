@@ -1,9 +1,6 @@
 /* eslint-env browser */
 /* global chroma */
 
-let previousPayload = {}
-let payload
-
 function adjustColor (color) {
   const c = chroma(color)
 
@@ -29,7 +26,7 @@ function updateElement (element, callback) {
 }
 
 function updateField (element, newValue) {
-  if (element.textContent === '' || !previousPayload.playing || document.hidden) {
+  if (element.textContent === '' || !state.previousPayload.playing || document.hidden) {
     element.textContent = newValue
     return
   }
@@ -42,7 +39,7 @@ function updateField (element, newValue) {
 }
 
 function updateArtwork (element, newValue) {
-  if (element.src === '' || !previousPayload.playing || document.hidden) {
+  if (element.src === '' || !state.previousPayload.playing || document.hidden) {
     element.src = newValue
     return
   }
@@ -71,22 +68,31 @@ function updateArtwork (element, newValue) {
   wrap.addEventListener('animationend', eventHandler)
 }
 
+const PANEL_RX = /for-(\w+)/
+const ALL_PANELS = Array.from(document.querySelectorAll('.panel')).map((panel) => panel.className.match(PANEL_RX)[1])
+function switchPanel (name) {
+  ALL_PANELS.forEach((panel) => {
+    if (panel !== name) {
+      document.documentElement.classList.remove(`is-${panel}`)
+    }
+  })
+
+  document.documentElement.classList.add(`is-${name}`)
+}
+
 function render (payload) {
   const {playing, track: {artist, album, title, artwork}} = payload
 
-  const html = document.documentElement
   const app = document.getElementById('App')
 
   if (!playing) {
-    html.classList.remove('is-playing')
-    html.classList.add('is-paused')
+    switchPanel('paused')
     document.body.style.backgroundColor = 'transparent'
     document.title = 'Silence'
     return
   }
 
-  html.classList.remove('is-paused')
-  html.classList.add('is-playing')
+  switchPanel('playing')
 
   document.title = `${title} — ${artist}`
 
@@ -109,10 +115,31 @@ function render (payload) {
   }
 }
 
-let ws = new WebSocket('ws://' + location.host + '/')
-
-ws.onmessage = function (event) {
-  previousPayload = payload
-  payload = JSON.parse(event.data)
-  render(payload)
+const state = {
+  previousPayload: {},
+  payload: {},
+  socketInterval: void 0
 }
+
+function start () {
+  let ws = new WebSocket('ws://' + location.host + '/')
+  ws.onmessage = function (event) {
+    state.previousPayload = state.payload
+    state.payload = JSON.parse(event.data)
+    render(state.payload)
+  }
+  ws.onopen = function () {
+    if (state.socketInterval) {
+      clearInterval(state.socketInterval)
+      state.socketInterval = void 0
+    }
+  }
+  ws.onclose = function () {
+    switchPanel('loading')
+    if (!state.socketInterval) {
+      state.socketInterval = setInterval(start, 2500)
+    }
+  }
+}
+
+start()

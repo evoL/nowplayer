@@ -1,25 +1,33 @@
 <!doctype html>
-<html class="is-playing">
+<html class="app is-loading">
 <head>
   <meta charset="utf-8">
   <title>Now Playing</title>
   <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body class="body">
-  <main id="App" class='app'>
+  <main id="App">
     <div class='panel for-paused'>
       <div class='panel__message'>Silence</div>
     </div>
 
     <div class='panel for-playing'>
       <div class="panel__lines">
-        <div class='panel__line is-artist'></div>
-        <div class='panel__line is-title'></div>
+        <div class='panel__line is-artist'>Artist</div>
+        <div class='panel__line is-title'>Title</div>
         <div class='panel__line is-album'></div>
       </div>
 
       <div class="panel__artwork-wrap">
         <img class='panel__artwork'>
+      </div>
+    </div>
+
+    <div class='panel for-loading'>
+      <div class="spinner">
+        <div class="spinner__one"></div>
+        <div class="spinner__two"></div>
+        <div class="spinner__three"></div>
       </div>
     </div>
   </main>
