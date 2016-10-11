@@ -5,18 +5,23 @@
 html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
 /* Base design */
 
+html {
+  background-color: #212121;
+}
+
 body {
   font-family: 'Prompt', sans-serif;
-  background-color: #212121;
+  background-color: transparent;
   color: #fff;
   overflow: hidden;
 }
 
-.panel, .panel__overlay {
+.panel {
   position: absolute;
   left: 0;
   top: 0;
@@ -31,6 +36,7 @@ body {
   right: -2vmax;
   bottom: -2vmax;
   transform: translateZ(0);
+  opacity: 0.4;
   -ms-user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -84,12 +90,11 @@ body {
   filter: blur(1vmax);
 }
 
-.panel__overlay {
-  background-color: #212121;
-  opacity: 0.7;
-}
-
 /* Logic and Animation — Play State */
+
+.body {
+  transition: background-color 1000ms;
+}
 
 .panel__line.is-artist,
 .panel__line.is-title,
@@ -107,9 +112,8 @@ body {
   transform-origin: bottom;
 }
 
-.panel__artwork-wrap, .panel__overlay {
-  transition-property: opacity, background-color;
-  transition-duration: 300ms, 1000ms;
+.panel__artwork-wrap {
+  transition: opacity 300ms;
 }
 
 .is-paused .panel__line.is-artist,
@@ -122,8 +126,11 @@ body {
   transition-delay: 100ms;
 }
 
-.is-paused .panel__artwork-wrap,
-.is-paused .panel__overlay {
+.is-paused .body {
+  transition-delay: 200ms;
+}
+
+.is-paused .panel__artwork-wrap {
   opacity: 0;
   transition-delay: 200ms;
 }
@@ -229,7 +236,7 @@ body {
 
 @keyframes fade-out {
   0% {
-    opacity: 1;
+    opacity: 0.4;
   }
   100% {
     opacity: 0;
@@ -241,7 +248,7 @@ body {
     opacity: 0;
   }
   100% {
-    opacity: 1;
+    opacity: 0.4;
   }
 }
 

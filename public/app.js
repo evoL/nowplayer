@@ -74,17 +74,19 @@ function updateArtwork (element, newValue) {
 function render (payload) {
   const {playing, track: {artist, album, title, artwork}} = payload
 
+  const html = document.documentElement
   const app = document.getElementById('App')
 
   if (!playing) {
-    app.classList.remove('is-playing')
-    app.classList.add('is-paused')
+    html.classList.remove('is-playing')
+    html.classList.add('is-paused')
+    document.body.style.backgroundColor = 'transparent'
     document.title = 'Silence'
     return
   }
 
-  app.classList.remove('is-paused')
-  app.classList.add('is-playing')
+  html.classList.remove('is-paused')
+  html.classList.add('is-playing')
 
   document.title = `${title} — ${artist}`
 
@@ -97,11 +99,13 @@ function render (payload) {
     newImage.onload = () => {
       setTimeout(() => {
         updateArtwork(app.querySelector('.panel__artwork'), newImage.src)
-        app.querySelector('.panel__overlay').style.backgroundColor = adjustColor(artwork.color)
+        document.body.style.backgroundColor = adjustColor(artwork.color)
       }, 1)
     }
     newImage.crossOrigin = 'Anonymous'
     newImage.src = artwork.uri
+  } else {
+    document.body.style.backgroundColor = 'transparent'
   }
 }
 
