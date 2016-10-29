@@ -5,6 +5,7 @@ const chroma = require('chroma-js')
 const DataUri = require('datauri')
 const farmhash = require('farmhash')
 const LRU = require('lru-cache')
+const chunk = require('lodash/chunk')
 
 const HTTP_RX = /^https?:\/\//
 const ARTWORK_CACHE = LRU({size: 50, length: ({uri}) => uri.length})
@@ -30,20 +31,36 @@ function makeCacheKey (source) {
   return farmhash.hash32(source)
 }
 
-function getArtworkColor (source) {
-  return fetchArtwork(source).then(imageBuffer => (
-    new Promise((resolve, reject) => {
-      gm(imageBuffer).colors(1).toBuffer('RGB', (err, value) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(value)
-        }
-      })
+function promisify(object, method, ...args) {
+  const fn = object[method].bind(object, ...args)
+
+  return new Promise((resolve, reject) => {
+    fn((err, value) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(value)
+      }
     })
-  )).then(buffer => {
-    const rgb = Array.from(buffer.slice(0, 3).values())
-    return chroma(rgb).hex()
+  })
+}
+
+function getArtworkColors (source) {
+  return fetchArtwork(source).then(imageBuffer => {
+    const image = gm(imageBuffer)
+
+    return Promise.all([
+      promisify(image.colors(1), 'toBuffer', 'RGB'),
+      promisify(image.resizeExact(3, 3), 'toBuffer', 'RGB')
+    ])
+  }).then(([colorBuffer, paletteBuffer]) => {
+    const averageColor = Array.from(colorBuffer.slice(0, 3).values())
+    const paletteColors = chunk(Array.from(paletteBuffer.values()), 3)
+
+    return {
+      averageColor: chroma(averageColor).hex(),
+      palette: paletteColors.map((color) => chroma(color).hex())
+    }
   })
 }
 
@@ -72,8 +89,12 @@ class Artwork {
   format () {
     if (!this.isValid()) return Promise.resolve(null)
     if (ARTWORK_CACHE.has(this.cacheKey)) return Promise.resolve(ARTWORK_CACHE.get(this.cacheKey))
-    return Promise.all([makeArtworkUri(this.source), getArtworkColor(this.source)]).then(([uri, color]) => {
-      const formatted = {uri, color}
+    return Promise.all([makeArtworkUri(this.source), getArtworkColors(this.source)]).then(([uri, colors]) => {
+      const formatted = {
+        uri,
+        color: colors.averageColor,
+        palette: colors.palette
+      }
       ARTWORK_CACHE.set(this.cacheKey, formatted)
       return formatted
     }, (error) => console.error(error))

@@ -4,8 +4,30 @@
 function adjustColor (color) {
   const c = chroma(color)
 
-  if (c.luminance() < 0.3) return c.hex()
-  return c.luminance(0.3).hex()
+  if (c.luminance() < 0.5) return c.hex()
+  return c.luminance(0.5).hex()
+}
+
+function makeImage (colors) {
+  const prefix = 'R0lGODlhAwADAPMA'
+  const suffix = '/evol/hacks/your/bytes/lol/CwAAAAAAwADAAAEBxAEMUgxB0UAOw=='
+  let palette = ''
+
+  let buffer = '\x00'
+  for (let i = 0; i < 9; i++) {
+    const color = chroma(colors[i] || '#000000')
+    buffer += String.fromCharCode(...color.rgb())
+
+    while (buffer.length > 3) {
+      palette += btoa(buffer.substring(0, 3))
+      buffer = buffer.substring(3)
+    }
+  }
+
+  buffer += '\x00'
+  palette += btoa(buffer).substring(0, 2)
+
+  return 'data:image/gif;base64,' + prefix + palette + suffix
 }
 
 function updateElement (element, callback) {
@@ -80,6 +102,7 @@ function switchPanel (name) {
   document.documentElement.classList.add(`is-${name}`)
 }
 
+const TRANSPARENT_IMAGE = 'url(data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI=)'
 function render (payload) {
   const {playing, track: {artist, album, title, artwork}} = payload
 
@@ -88,6 +111,7 @@ function render (payload) {
   if (!playing) {
     switchPanel('paused')
     document.body.style.backgroundColor = 'transparent'
+    document.body.style.backgroundImage = TRANSPARENT_IMAGE
     document.title = 'Silence'
     return
   }
@@ -106,12 +130,14 @@ function render (payload) {
       setTimeout(() => {
         updateArtwork(app.querySelector('.panel__artwork'), newImage.src)
         document.body.style.backgroundColor = adjustColor(artwork.color)
+        document.body.style.backgroundImage = 'url(' + makeImage(artwork.palette.map(adjustColor)) + ')'
       }, 1)
     }
     newImage.crossOrigin = 'Anonymous'
     newImage.src = artwork.uri
   } else {
     document.body.style.backgroundColor = 'transparent'
+    document.body.style.backgroundImage = TRANSPARENT_IMAGE
   }
 }
 

@@ -17,6 +17,8 @@ html {
 body {
   font-family: 'Prompt', sans-serif;
   background-color: transparent;
+  background-size: cover;
+  background-position: center;
   color: #fff;
   overflow: hidden;
 }
@@ -116,7 +118,8 @@ body {
 /* Logic and Animation — Play State */
 
 .body {
-  transition: background-color 1000ms;
+  transition-property: background-color, background-image;
+  transition-duration: 1000ms;
 }
 
 .panel__line.is-artist,
