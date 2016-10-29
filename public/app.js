@@ -107,11 +107,12 @@ function render (payload) {
   const {playing, track: {artist, album, title, artwork}} = payload
 
   const app = document.getElementById('App')
+  const background = document.querySelector('.panel__background')
 
   if (!playing) {
     switchPanel('paused')
     document.body.style.backgroundColor = 'transparent'
-    document.body.style.backgroundImage = TRANSPARENT_IMAGE
+    background.style.backgroundImage = TRANSPARENT_IMAGE
     document.title = 'Silence'
     return
   }
@@ -130,14 +131,14 @@ function render (payload) {
       setTimeout(() => {
         updateArtwork(app.querySelector('.panel__artwork'), newImage.src)
         document.body.style.backgroundColor = adjustColor(artwork.color)
-        document.body.style.backgroundImage = 'url(' + makeImage(artwork.palette.map(adjustColor)) + ')'
+        background.style.backgroundImage = 'url(' + makeImage(artwork.palette.map(adjustColor)) + ')'
       }, 1)
     }
     newImage.crossOrigin = 'Anonymous'
     newImage.src = artwork.uri
   } else {
     document.body.style.backgroundColor = 'transparent'
-    document.body.style.backgroundImage = TRANSPARENT_IMAGE
+    background.style.backgroundImage = TRANSPARENT_IMAGE
   }
 }
 
