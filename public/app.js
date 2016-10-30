@@ -104,7 +104,7 @@ function switchPanel (name) {
 
 const TRANSPARENT_IMAGE = 'url(data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI=)'
 function render (payload) {
-  const {playing, track: {artist, album, title, artwork}} = payload
+  const {playing, track: {artist, title, artwork}} = payload
 
   const app = document.getElementById('App')
   const background = document.querySelector('.panel__background')
@@ -122,7 +122,6 @@ function render (payload) {
   document.title = `${title} — ${artist}`
 
   updateField(app.querySelector('.is-artist'), artist)
-  updateField(app.querySelector('.is-album'), album)
   updateField(app.querySelector('.is-title'), title)
 
   if (artwork) {
